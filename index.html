@@ -3,330 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2048 Pro - Purple Edition</title>
+    <title>2048 Purple Edition</title>
     <style>
         :root {
-            --bg-color: #a149d4;
-            --grid-bg: #1a1a1a;
-            --text-white: #ffffff;
+            --bg-purple: #a547d6;
+            --grid-bg: #111111;
             /* Tile Colors based on your image */
-            --tile-2: #9d00ff;
-            --tile-4: #ff2e63;
-            --tile-8: #ffcc29;
-            --tile-16: #00d100;
-            --tile-32: #0096e1;
-            --tile-64: #c2185b;
-            --tile-128: #ff6d00;
-            --tile-256: #1de9b6;
-            --tile-2048: #4a148c;
-            --tile-default: #333;
+            --t2: #9e00ff; --t4: #f42c5c; --t8: #ffca28; --t16: #00cd01;
+            --t32: #0095e0; --t64: #c2175b; --t128: #ff6d00; --t256: #1de9b6;
+            --t2048: #4a148c;
         }
 
+        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-purple);
             font-family: 'Arial', sans-serif;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
+            justify-content: flex-start;
             height: 100vh;
             overflow: hidden;
-            color: white;
-            touch-action: none; /* Prevents scrolling while playing on mobile */
+            touch-action: none; /* Prevents mobile browser from scrolling while swiping tiles */
         }
 
+        /* Header UI */
         .header {
-            display: flex;
-            justify-content: space-between;
             width: 90%;
             max-width: 400px;
-            margin-top: 20px;
-        }
-
-        .score-container {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
         }
 
-        .score-box {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 5px 15px;
+        .score-row { display: flex; gap: 10px; }
+
+        .stat-box {
+            background: #000000;
             border-radius: 4px;
+            padding: 5px 15px;
+            min-width: 90px;
             text-align: center;
-            min-width: 80px;
+            color: white;
         }
 
-        .score-label { font-size: 10px; color: #d178ff; font-weight: bold; text-transform: uppercase; }
-        .score-value { font-size: 20px; font-weight: bold; }
+        .stat-label { font-size: 11px; color: #b388ff; font-weight: bold; letter-spacing: 1px; }
+        .stat-value { font-size: 22px; font-weight: bold; }
 
-        .menu-icon {
-            font-size: 30px;
-            cursor: pointer;
-        }
+        .menu-btn { font-size: 32px; color: black; cursor: pointer; line-height: 0.8; }
 
-        #game-board {
-            width: 360px;
-            height: 360px;
+        /* Game Board - Responsive */
+        .board-container {
+            position: relative;
+            width: 90vw;
+            height: 90vw;
+            max-width: 400px;
+            max-height: 400px;
             background-color: var(--grid-bg);
             border: 8px solid var(--grid-bg);
-            border-radius: 6px;
+            border-radius: 8px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             gap: 8px;
-            margin-top: 20px;
-            position: relative;
         }
 
         .tile {
             width: 100%;
             height: 100%;
+            background: #222;
             border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            transition: transform 0.1s ease-in-out;
+            color: white;
+            transition: all 0.1s ease-in-out;
         }
 
-        /* Tile Color Logic */
-        .tile[data-value="2"] { background: var(--tile-2); }
-        .tile[data-value="4"] { background: var(--tile-4); }
-        .tile[data-value="8"] { background: var(--tile-8); }
-        .tile[data-value="16"] { background: var(--tile-16); }
-        .tile[data-value="32"] { background: var(--tile-32); }
-        .tile[data-value="64"] { background: var(--tile-64); }
-        .tile[data-value="128"] { background: var(--tile-128); font-size: 20px;}
-        .tile[data-value="256"] { background: var(--tile-256); font-size: 20px;}
-        .tile[data-value="512"] { background: #00bcd4; font-size: 20px;}
-        .tile[data-value="1024"] { background: #3f51b5; font-size: 18px;}
-        .tile[data-value="2048"] { background: var(--tile-2048); font-size: 18px;}
-        .tile-empty { background: #2a2a2a; }
+        /* Tile Styling */
+        .tile[data-val="2"] { background: var(--t2); }
+        .tile[data-val="4"] { background: var(--t4); }
+        .tile[data-val="8"] { background: var(--t8); }
+        .tile[data-val="16"] { background: var(--t16); }
+        .tile[data-val="32"] { background: var(--t32); }
+        .tile[data-val="64"] { background: var(--t64); }
+        .tile[data-val="128"] { background: var(--t128); font-size: 24px; }
+        .tile[data-val="256"] { background: var(--t256); font-size: 24px; }
+        .tile[data-val="2048"] { background: var(--t2048); font-size: 22px; }
 
-        .audio-control {
-            margin-top: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
+        /* Audio Controls */
+        .audio-controls {
+            margin-top: 30px;
+            background: rgba(0,0,0,0.4);
             color: white;
             padding: 10px 20px;
-            border-radius: 20px;
+            border-radius: 30px;
             cursor: pointer;
+            border: none;
+            font-weight: bold;
         }
 
-        .game-over {
+        #game-over-overlay {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 100;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="score-container">
-            <div class="score-box">
-                <div class="score-label">SCORE</div>
-                <div id="score" class="score-value">0</div>
+        <div class="score-row">
+            <div class="stat-box">
+                <div class="stat-label">SCORE</div>
+                <div id="score" class="stat-value">0</div>
             </div>
-            <div class="score-box">
-                <div class="score-label">BEST</div>
-                <div id="best-score" class="score-value">0</div>
+            <div class="stat-box">
+                <div class="stat-label">BEST</div>
+                <div id="best" class="stat-value">0</div>
             </div>
         </div>
-        <div class="menu-icon">☰</div>
+        <div class="menu-btn">≡</div>
     </div>
 
-    <div id="game-board">
-        <div class="game-over" id="game-over">
-            <h1>Game Over!</h1>
-            <button onclick="resetGame()" style="padding: 10px 20px; cursor: pointer;">Try Again</button>
+    <div class="board-container" id="board">
+        <div id="game-over-overlay">
+            <h1 style="color:white">Game Over!</h1>
+            <button onclick="resetGame()" style="padding:10px 20px; cursor:pointer">Restart</button>
         </div>
-        <!-- Tiles will be generated here -->
     </div>
 
-    <button class="audio-control" id="musicBtn">🎵 Play Music</button>
-
-    <audio id="bgMusic" loop>
-        <source src="song.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+    <button class="audio-controls" id="audioBtn">🎵 PLAY MUSIC</button>
+    <audio id="bgMusic" loop src="song.mp3"></audio>
 
     <script>
-        let board = [];
+        let grid = [];
         let score = 0;
-        let bestScore = localStorage.getItem('2048-best') || 0;
-        const boardSize = 4;
-        const gameBoard = document.getElementById('game-board');
-        const scoreDisplay = document.getElementById('score');
-        const bestDisplay = document.getElementById('best-score');
-        const music = document.getElementById('bgMusic');
-        const musicBtn = document.getElementById('musicBtn');
+        let bestScore = localStorage.getItem('2048-best-purple') || 0;
+        const size = 4;
+        const boardEl = document.getElementById('board');
+        const audio = document.getElementById('bgMusic');
+        const audioBtn = document.getElementById('audioBtn');
 
-        // Audio Toggle
-        musicBtn.addEventListener('click', () => {
-            if (music.paused) {
-                music.play();
-                musicBtn.innerText = "⏸ Pause Music";
-            } else {
-                music.pause();
-                musicBtn.innerText = "🎵 Play Music";
-            }
-        });
-
-        function initGame() {
-            board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
+        // Initial Setup
+        function init() {
+            grid = Array(size).fill().map(() => Array(size).fill(0));
             score = 0;
-            bestDisplay.innerText = bestScore;
-            updateScore(0);
-            addTile();
-            addTile();
-            renderBoard();
+            document.getElementById('best').innerText = bestScore;
+            addTile(); addTile();
+            render();
         }
 
         function addTile() {
-            let emptyTiles = [];
-            for (let r = 0; r < boardSize; r++) {
-                for (let c = 0; c < boardSize; c++) {
-                    if (board[r][c] === 0) emptyTiles.push({r, c});
-                }
-            }
-            if (emptyTiles.length > 0) {
-                let {r, c} = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
-                board[r][c] = Math.random() > 0.1 ? 2 : 4;
+            let empty = [];
+            for(let r=0; r<size; r++) for(let c=0; c<size; c++) if(grid[r][c]===0) empty.push({r,c});
+            if(empty.length) {
+                let {r,c} = empty[Math.floor(Math.random()*empty.length)];
+                grid[r][c] = Math.random() > 0.1 ? 2 : 4;
             }
         }
 
-        function renderBoard() {
-            // Clear existing tiles except the game-over screen
-            const tiles = document.querySelectorAll('.tile');
-            tiles.forEach(t => t.remove());
+        function render() {
+            // Clear existing tiles (keeping the overlay)
+            const oldTiles = document.querySelectorAll('.tile');
+            oldTiles.forEach(t => t.remove());
 
-            for (let r = 0; r < boardSize; r++) {
-                for (let c = 0; c < boardSize; c++) {
-                    let tileDiv = document.createElement('div');
-                    tileDiv.classList.add('tile');
-                    let val = board[r][c];
-                    if (val > 0) {
-                        tileDiv.innerText = val;
-                        tileDiv.setAttribute('data-value', val);
-                    } else {
-                        tileDiv.classList.add('tile-empty');
+            for(let r=0; r<size; r++) {
+                for(let c=0; c<size; c++) {
+                    let tile = document.createElement('div');
+                    tile.className = 'tile';
+                    if(grid[r][c] !== 0) {
+                        tile.innerText = grid[r][c];
+                        tile.setAttribute('data-val', grid[r][c]);
                     }
-                    gameBoard.appendChild(tileDiv);
+                    boardEl.appendChild(tile);
                 }
             }
-        }
-
-        function updateScore(points) {
-            score += points;
-            scoreDisplay.innerText = score;
-            if (score > bestScore) {
+            document.getElementById('score').innerText = score;
+            if(score > bestScore) {
                 bestScore = score;
-                bestDisplay.innerText = bestScore;
-                localStorage.setItem('2048-best', bestScore);
+                document.getElementById('best').innerText = bestScore;
+                localStorage.setItem('2048-best-purple', bestScore);
             }
         }
 
-        // Logic for sliding and merging
-        function filterZero(row) { return row.filter(num => num !== 0); }
-
+        // Logic - Move & Merge
         function slide(row) {
-            row = filterZero(row);
-            for (let i = 0; i < row.length - 1; i++) {
-                if (row[i] === row[i+1]) {
-                    row[i] *= 2;
-                    row[i+1] = 0;
-                    updateScore(row[i]);
+            let filtered = row.filter(x => x !== 0);
+            for(let i=0; i<filtered.length-1; i++) {
+                if(filtered[i] === filtered[i+1]) {
+                    filtered[i] *= 2;
+                    score += filtered[i];
+                    filtered.splice(i+1, 1);
                 }
             }
-            row = filterZero(row);
-            while (row.length < boardSize) row.push(0);
-            return row;
+            while(filtered.length < size) filtered.push(0);
+            return filtered;
         }
 
-        function handleMove(direction) {
-            let oldBoard = JSON.stringify(board);
-            
-            if (direction === 'left') {
-                for (let r = 0; r < boardSize; r++) board[r] = slide(board[r]);
-            } else if (direction === 'right') {
-                for (let r = 0; r < boardSize; r++) board[r] = slide(board[r].reverse()).reverse();
-            } else if (direction === 'up') {
-                for (let c = 0; c < boardSize; c++) {
-                    let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
+        function move(dir) {
+            let prev = JSON.stringify(grid);
+            if(dir === 'Left' || dir === 'Right') {
+                for(let r=0; r<size; r++) {
+                    let row = grid[r];
+                    if(dir === 'Right') row.reverse();
                     row = slide(row);
-                    for (let r = 0; r < boardSize; r++) board[r][c] = row[r];
+                    if(dir === 'Right') row.reverse();
+                    grid[r] = row;
                 }
-            } else if (direction === 'down') {
-                for (let c = 0; c < boardSize; c++) {
-                    let row = [board[0][c], board[1][c], board[2][c], board[3][c]].reverse();
-                    row = slide(row);
-                    row.reverse();
-                    for (let r = 0; r < boardSize; r++) board[r][c] = row[r];
+            } else {
+                for(let c=0; c<size; c++) {
+                    let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+                    if(dir === 'Down') col.reverse();
+                    col = slide(col);
+                    if(dir === 'Down') col.reverse();
+                    for(let r=0; r<size; r++) grid[r][c] = col[r];
                 }
             }
-
-            if (oldBoard !== JSON.stringify(board)) {
+            if(prev !== JSON.stringify(grid)) {
                 addTile();
-                renderBoard();
+                render();
                 checkGameOver();
             }
         }
 
+        // Game Over Check
         function checkGameOver() {
-            let hasEmpty = board.some(row => row.includes(0));
-            if (hasEmpty) return;
-
-            // Check if any moves possible
-            for (let r = 0; r < boardSize; r++) {
-                for (let c = 0; c < boardSize; c++) {
-                    if (c < 3 && board[r][c] === board[r][c+1]) return;
-                    if (r < 3 && board[r][c] === board[r+1][c]) return;
+            let movesPossible = false;
+            for(let r=0; r<size; r++) {
+                for(let c=0; c<size; c++) {
+                    if(grid[r][c] === 0) movesPossible = true;
+                    if(c<3 && grid[r][c] === grid[r][c+1]) movesPossible = true;
+                    if(r<3 && grid[r][c] === grid[r+1][c]) movesPossible = true;
                 }
             }
-            document.getElementById('game-over').style.display = 'flex';
+            if(!movesPossible) document.getElementById('game-over-overlay').style.display = 'flex';
         }
 
         function resetGame() {
-            document.getElementById('game-over').style.display = 'none';
-            initGame();
+            document.getElementById('game-over-overlay').style.display = 'none';
+            init();
         }
 
-        // Input Listeners
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "ArrowLeft") handleMove('left');
-            if (e.key === "ArrowRight") handleMove('right');
-            if (e.key === "ArrowUp") handleMove('up');
-            if (e.key === "ArrowDown") handleMove('down');
+        // --- CONTROLS ---
+
+        // 1. PC Controls (Arrows)
+        window.addEventListener('keydown', e => {
+            if(e.key.includes('Arrow')) move(e.key.replace('Arrow',''));
         });
 
-        // Touch Support
+        // 2. Mobile Controls (Swipe)
         let startX, startY;
         document.addEventListener('touchstart', e => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
-        });
+        }, {passive: false});
 
         document.addEventListener('touchend', e => {
-            if (!startX || !startY) return;
             let diffX = startX - e.changedTouches[0].clientX;
             let diffY = startY - e.changedTouches[0].clientY;
-
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > 30) handleMove(diffX > 0 ? 'left' : 'right');
+            if(Math.abs(diffX) > Math.abs(diffY)) {
+                if(Math.abs(diffX) > 30) move(diffX > 0 ? 'Left' : 'Right');
             } else {
-                if (Math.abs(diffY) > 30) handleMove(diffY > 0 ? 'up' : 'down');
+                if(Math.abs(diffY) > 30) move(diffY > 0 ? 'Up' : 'Down');
             }
-            startX = startY = null;
         });
 
-        initGame();
+        // 3. Audio Control
+        audioBtn.onclick = () => {
+            if(audio.paused) {
+                audio.play();
+                audioBtn.innerText = "⏸ PAUSE MUSIC";
+            } else {
+                audio.pause();
+                audioBtn.innerText = "🎵 PLAY MUSIC";
+            }
+        };
+
+        init();
     </script>
 </body>
 </html>
